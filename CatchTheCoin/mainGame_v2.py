@@ -2,7 +2,7 @@
 ####        N A V I O    C A T A    M O E D A S       ####
 ##########################################################
 #### Prof. Filipo Novo Mor - filipomor.com            ####
-#### github.com/ProfessorFilipo                       ####
+#### github.com\ProfessorFilipo                       ####
 ##########################################################
 import pygame
 import random
@@ -11,8 +11,8 @@ import sys
 pygame.init()
 
 #  carrega os sons
-som_aviso = pygame.mixer.Sound(r'Assets/Audio/notificacao.mp3')
-som_beep = pygame.mixer.Sound(r'Assets/Audio/beep.mp3')
+som_aviso = pygame.mixer.Sound(r"CatchTheCoin\Assets\Audio\notificacao.mp3")
+som_beep = pygame.mixer.Sound(r"CatchTheCoin\Assets\Audio\beep.mp3")
 
 #
 # Configurações iniciais
@@ -22,18 +22,18 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Navio Cata Moedas!!!")
 clock = pygame.time.Clock()
 FONT = pygame.font.SysFont(None, 36)
-MOEDA_TAMANHO = (20, 20)
+MOEDA_TAMANHO = (32, 32)
 
 # Carregar a imagem do fundo (altere o caminho para sua imagem real)
-background_img = pygame.image.load(r'Assets/Ocean_8/6.png').convert()
+background_img = pygame.image.load(r'CatchTheCoin\Assets\Ocean_8\6.png').convert()
 
 # barco
-barco_sprite_img = pygame.image.load(r'Assets/PNG/boat01.png').convert_alpha()
+barco_sprite_img = pygame.image.load(r'CatchTheCoin\Assets\PNG\boat01.png').convert_alpha()
 # Opcionalmente, ajuste o tamanho do sprite
-barco_sprite_img = pygame.transform.smoothscale(barco_sprite_img, (80, 40))
+barco_sprite_img = pygame.transform.smoothscale(barco_sprite_img, (64, 64))
 
 #mar
-sea_sprite = pygame.image.load(r'Assets/PNG/mar001.png').convert()
+sea_sprite = pygame.image.load(r'CatchTheCoin\Assets\PNG\mar001.png').convert()
 sea_sprite = pygame.transform.smoothscale(sea_sprite, (WIDTH, sea_sprite.get_height()))
 sea_rect = sea_sprite.get_rect(topleft=(0, HEIGHT - sea_sprite.get_height()))
 
@@ -42,15 +42,15 @@ sea_rect = sea_sprite.get_rect(topleft=(0, HEIGHT - sea_sprite.get_height()))
 #
 def configurar_dificuldade(nivel):
     if nivel == 1:
-        qtd_moedas = 15
+        qtd_moedas = 5
         v_min = 2
         v_max = 3
     elif nivel == 2:
-        qtd_moedas = 25
+        qtd_moedas = 5
         v_min = 3
         v_max = 4
     elif nivel == 3:
-        qtd_moedas = 35
+        qtd_moedas = 5
         v_min = 4
         v_max = 6
     else:
@@ -59,7 +59,7 @@ def configurar_dificuldade(nivel):
         v_max = 3
     return qtd_moedas, v_min, v_max
 
-def load_animation_frames(prefix, total_frames=10, tamanho=MOEDA_TAMANHO):
+def load_animation_frames(prefix, total_frames=2, tamanho=MOEDA_TAMANHO):
     frames = []
     for i in range(1, total_frames + 1):
         filename = f'{prefix}_{i}.png'
@@ -69,10 +69,10 @@ def load_animation_frames(prefix, total_frames=10, tamanho=MOEDA_TAMANHO):
     return frames
 
 # Carregar sprites das moedas (alterar caminhos conforme seus arquivos)
-ouro_frames   = load_animation_frames(r"Assets\PNG\Gold\Gold")
-prata_frames  = load_animation_frames(r"Assets\PNG\Silver\Silver")
-bronze_frames = load_animation_frames(r"Assets\PNG\Bronze\Bronze")
-VALOR_MOEDAS  = {'ouro': 10, 'prata': 5, 'bronze': 1}
+ouro_frames   = load_animation_frames(r"CatchTheCoin\Assets\PNG\Gold\hamburguer")
+prata_frames  = load_animation_frames(r"CatchTheCoin\Assets\PNG\Silver\batata")
+bronze_frames = load_animation_frames(r"CatchTheCoin\Assets\PNG\Bronze\refri")
+VALOR_MOEDAS  = {'ouro': 5, 'prata': 3, 'bronze': 1}
 
 # Classe das moedas animadas
 class Moeda(pygame.sprite.Sprite):
@@ -230,7 +230,7 @@ while running:
     screen.blit(barco.image, barco.rect)
 
     # Mostrar quantidade de moedas capturadas
-    info_text = f'Moedas: {barco.carga}/{barco.max_carga}'
+    info_text = f'Moedas: {barco.carga}\{barco.max_carga}'
     nivel_text = f'Nível: {nivel}'
     screen.blit(FONT.render(info_text, True, (255, 255, 255)), (10, 10))
     screen.blit(FONT.render(nivel_text, True, (255, 255, 255)), (10, 50))
