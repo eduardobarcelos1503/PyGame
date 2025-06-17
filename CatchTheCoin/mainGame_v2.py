@@ -10,13 +10,11 @@ import sys
 
 pygame.init()
 
-#  carrega os sons
+# Sons
 som_aviso = pygame.mixer.Sound(r"CatchTheCoin\Assets\Audio\notificacao.mp3")
 som_beep = pygame.mixer.Sound(r"CatchTheCoin\Assets\Audio\beep.mp3")
 
-#
 # Configurações iniciais
-#
 WIDTH, HEIGHT = 800, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Navio Cata Moedas!!!")
@@ -24,40 +22,29 @@ clock = pygame.time.Clock()
 FONT = pygame.font.SysFont(None, 36)
 MOEDA_TAMANHO = (32, 32)
 
-# Carregar a imagem do fundo (altere o caminho para sua imagem real)
-background_img = pygame.image.load(r'CatchTheCoin\Assets\Ocean_8\6.png').convert()
-
-# barco
+# Imagens
+background_img = pygame.image.load(r'CatchTheCoin\Assets\PNG\ambiente3.png').convert()
+background_img = pygame.transform.smoothscale(background_img, (800, 600))
 barco_sprite_img = pygame.image.load(r'CatchTheCoin\Assets\PNG\boat01.png').convert_alpha()
-# Opcionalmente, ajuste o tamanho do sprite
 barco_sprite_img = pygame.transform.smoothscale(barco_sprite_img, (64, 64))
-
-#mar
-sea_sprite = pygame.image.load(r'CatchTheCoin\Assets\PNG\mar001.png').convert()
+sea_sprite = pygame.image.load(r'CatchTheCoin\Assets\PNG\chao.png').convert()
 sea_sprite = pygame.transform.smoothscale(sea_sprite, (WIDTH, sea_sprite.get_height()))
 sea_rect = sea_sprite.get_rect(topleft=(0, HEIGHT - sea_sprite.get_height()))
 
-#
-# Função para configurar a dificuldade
-#
+# Brocolis
+brocolis_img = pygame.image.load(r'CatchTheCoin\Assets\Inimigos\brocolis.png').convert_alpha()
+brocolis_img = pygame.transform.smoothscale(brocolis_img, (32, 32))
+
+# Função para dificuldade
 def configurar_dificuldade(nivel):
     if nivel == 1:
-        qtd_moedas = 5
-        v_min = 2
-        v_max = 3
+        return 5, 2, 3
     elif nivel == 2:
-        qtd_moedas = 5
-        v_min = 3
-        v_max = 4
+        return 5, 3, 4
     elif nivel == 3:
-        qtd_moedas = 5
-        v_min = 4
-        v_max = 6
+        return 5, 4, 6
     else:
-        qtd_moedas = 15
-        v_min = 2
-        v_max = 3
-    return qtd_moedas, v_min, v_max
+        return 15, 2, 3
 
 def load_animation_frames(prefix, total_frames=2, tamanho=MOEDA_TAMANHO):
     frames = []
@@ -68,22 +55,16 @@ def load_animation_frames(prefix, total_frames=2, tamanho=MOEDA_TAMANHO):
         frames.append(image)
     return frames
 
-# Carregar sprites das moedas (alterar caminhos conforme seus arquivos)
-ouro_frames   = load_animation_frames(r"CatchTheCoin\Assets\PNG\Gold\hamburguer")
-prata_frames  = load_animation_frames(r"CatchTheCoin\Assets\PNG\Silver\batata")
+ouro_frames = load_animation_frames(r"CatchTheCoin\Assets\PNG\Gold\hamburguer")
+prata_frames = load_animation_frames(r"CatchTheCoin\Assets\PNG\Silver\batata")
 bronze_frames = load_animation_frames(r"CatchTheCoin\Assets\PNG\Bronze\refri")
-VALOR_MOEDAS  = {'ouro': 5, 'prata': 3, 'bronze': 1}
+VALOR_MOEDAS = {'ouro': 5, 'prata': 3, 'bronze': 1}
 
-# Classe das moedas animadas
 class Moeda(pygame.sprite.Sprite):
     def __init__(self, x, y, tipo):
         super().__init__()
         self.tipo = tipo
-        self.frames = {
-            'ouro': ouro_frames,
-            'prata': prata_frames,
-            'bronze': bronze_frames
-        }[tipo]
+        self.frames = {'ouro': ouro_frames, 'prata': prata_frames, 'bronze': bronze_frames}[tipo]
         self.current_frame = 0
         self.image = self.frames[self.current_frame]
         self.rect = self.image.get_rect(topleft=(x, y))
@@ -97,19 +78,17 @@ class Moeda(pygame.sprite.Sprite):
             self.rect.x = random.randint(0, WIDTH - self.rect.width)
             self.rect.y = random.randint(-50, -10)
             self.speed = random.uniform(2, 5)
-        # Animação
         self.frame_counter += self.animation_speed
         if self.frame_counter >= 1:
             self.frame_counter = 0
             self.current_frame = (self.current_frame + 1) % len(self.frames)
             self.image = self.frames[self.current_frame]
 
-# Classe do barco
 class Barco(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.image = barco_sprite_img  # sprite carregado
-        self.rect = self.image.get_rect(midbottom=(WIDTH//2, HEIGHT - 100))
+        self.image = barco_sprite_img
+        self.rect = self.image.get_rect(midbottom=(WIDTH//2, HEIGHT - 70))
         self.speed = 8
         self.carga = 0
         self.max_carga = 100
@@ -119,132 +98,130 @@ class Barco(pygame.sprite.Sprite):
             self.rect.x -= self.speed
         if keys_pressed[pygame.K_RIGHT]:
             self.rect.x += self.speed
-        if self.rect.left < 0:
-            self.rect.left = 0
-        if self.rect.right > WIDTH:
-            self.rect.right = WIDTH
+        self.rect.left = max(0, self.rect.left)
+        self.rect.right = min(WIDTH, self.rect.right)
 
     def voltar_ao_porto(self):
         self.rect.midbottom = (WIDTH // 2, HEIGHT - 100)
         self.carga = 0
 
+class Brocolis(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = brocolis_img
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.speed = random.uniform(2, 4)
 
-#
-# Variáveis de controle
-#
+    def update(self):
+        self.rect.y += self.speed
+        if self.rect.top > HEIGHT:
+            self.rect.x = random.randint(0, WIDTH - self.rect.width)
+            self.rect.y = random.randint(-100, -40)
+            self.speed = random.uniform(2, 4)
+
+def fim_de_jogo():
+    texto = FONT.render("FIM DE JOGO! Brócolis acertou 3 vezes!", True, (255, 0, 0))
+    screen.blit(texto, (WIDTH // 2 - texto.get_width() // 2, HEIGHT // 2))
+    pygame.display.flip()
+    pygame.time.delay(3000)
+    pygame.quit()
+    sys.exit()
+
+# Variáveis iniciais
 nivel = 1
 qtd_moedas, v_min, v_max = configurar_dificuldade(nivel)
 moedas = pygame.sprite.Group()
-em_descarga = False
-tempo_descarga = 0
-pontos = 0
-
-# Criar moedas iniciais
 for _ in range(qtd_moedas):
     tipo = random.choice(['ouro', 'prata', 'bronze'])
     x = random.randint(0, WIDTH - 20)
     y = random.randint(-100, -10)
     moedas.add(Moeda(x, y, tipo))
 
-# Instanciar o barco
 barco = Barco()
 
-#
-# Loop principal do jogo
-#
-running = True
-while running:
-    clock.tick(60)  # 60 frames por segundo
+brocolis = pygame.sprite.Group()
+for _ in range(2):
+    x = random.randint(0, WIDTH - 32)
+    y = random.randint(-200, -50)
+    brocolis.add(Brocolis(x, y))
 
-    # Processar eventos
+acertos_brocolis = 0
+MAX_ACERTOS = 3
+em_descarga = False
+tempo_descarga = 0
+pontos = 0
+
+# Loop principal
+going = True
+while going:
+    clock.tick(60)
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            going = False
 
     keys = pygame.key.get_pressed()
 
-    # Se o barco estiver carregando até o limite, inicia o descarregamento
     if not em_descarga and barco.carga >= barco.max_carga:
         som_aviso.play()
-
-        # Cria uma lista das moedas no céu (fora do alcance do barco)
         moedas_no_ceu = [m for m in moedas if m.rect.y < HEIGHT / 2]
-        while moedas_no_ceu:
-            moeda_remover = moedas_no_ceu.pop()
-            moedas.remove(moeda_remover)
-
-            # Conta 1 ponto negativo por moeda removida
-            pontos -= 1
-            if pontos < 0:
-                pontos = 0
-
+        for m in moedas_no_ceu:
+            moedas.remove(m)
+            pontos = max(0, pontos - 1)
         em_descarga = True
         tempo_descarga = pygame.time.get_ticks()
 
     if em_descarga:
-        # O barco volta ao porto para descarregar
         barco.voltar_ao_porto()
-        # Aguarda 2 segundos para descarregar
         if pygame.time.get_ticks() - tempo_descarga > 2000:
             barco.carga = 0
             em_descarga = False
-        continue  # pula o restante do loop enquanto descarrega
+        continue
 
-    # Atualiza movimento do barco
     barco.update(keys)
-
-    # Atualiza as moedas
     moedas.update()
+    brocolis.update()
 
-    # Detecta colisões entre o barco e as moedas
     colisoes = pygame.sprite.spritecollide(barco, moedas, True)
     for moeda in colisoes:
         barco.carga += VALOR_MOEDAS[moeda.tipo]
         som_beep.play()
         pontos += 1
-        # Após capturar uma moeda, cria uma nova
-        '''tipo_random = random.choice(['ouro', 'prata', 'bronze'])
-        x = random.randint(0, WIDTH - 20)
-        y = random.randint(-50, -10)
-        moedas.add(Moeda(x, y, tipo_random)) '''
 
-
-    # Garantir que o número de moedas esteja constante
     while len(moedas) < qtd_moedas:
         tipo = random.choice(['ouro', 'prata', 'bronze'])
         x = random.randint(0, WIDTH - 20)
         y = random.randint(-100, -10)
         moedas.add(Moeda(x, y, tipo))
 
-    #
-    # Desenhar a tela
-    #
+    colisoes_brocolis = pygame.sprite.spritecollide(barco, brocolis, True)
+    for _ in colisoes_brocolis:
+        acertos_brocolis += 1
+        if acertos_brocolis >= MAX_ACERTOS:
+            fim_de_jogo()
+        else:
+            x = random.randint(0, WIDTH - 32)
+            y = random.randint(-100, -40)
+            brocolis.add(Brocolis(x, y))
+
+    # Desenho
     screen.blit(background_img, (0, 0))
-    # Pode adicionar desenho do porto se desejar
-    # screen.blit(port_sprite, port_rect) # nao esquecer de carregar a imagem e criar o rect
     score_text = f"Pontos: {pontos}"
-    score_surface = FONT.render(score_text, True, (255, 255, 255))
-    screen.blit(score_surface, (10, 80))
+    screen.blit(FONT.render(score_text, True, (255, 255, 255)), (10, 80))
+    screen.blit(FONT.render(f"Moedas: {barco.carga}\{barco.max_carga}", True, (255, 255, 255)), (10, 10))
+    screen.blit(FONT.render(f"Nível: {nivel}", True, (255, 255, 255)), (10, 50))
+    screen.blit(FONT.render(f"Erros (Brócolis): {acertos_brocolis}/{MAX_ACERTOS}", True, (255, 100, 100)), (10, 110))
+
     moedas.draw(screen)
+    brocolis.draw(screen)
     screen.blit(sea_sprite, sea_rect)
     screen.blit(barco.image, barco.rect)
 
-    # Mostrar quantidade de moedas capturadas
-    info_text = f'Moedas: {barco.carga}\{barco.max_carga}'
-    nivel_text = f'Nível: {nivel}'
-    screen.blit(FONT.render(info_text, True, (255, 255, 255)), (10, 10))
-    screen.blit(FONT.render(nivel_text, True, (255, 255, 255)), (10, 50))
-
-    # Se desejar, pode aqui aumentar o nível
     if barco.carga >= barco.max_carga:
-        nivel += 1
-        if nivel > 3:
-            nivel = 3  # máximo nível
+        nivel = min(3, nivel + 1)
         qtd_moedas, v_min, v_max = configurar_dificuldade(nivel)
 
-    # Atualiza a tela
     pygame.display.flip()
 
-# Encerra o pygame ao sair do loop
 pygame.quit()
 sys.exit()
